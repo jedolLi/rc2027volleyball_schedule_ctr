@@ -7865,8 +7865,20 @@ function applyTaskPermissions(m, t, isNew) {
   if (!canEditTask(t)) {
     m.querySelectorAll('input,select,textarea,button').forEach(el => { if (!el.matches('[data-close]')) el.disabled = true; });
     m.querySelector('#delTask')?.remove();
+    // 协作申请是个例外：被申请的子系统的成员即便不是负责人，也要能接受/拒绝
+    let canReplyAny = false;
+    ((t && t.collabs) || []).forEach(c => {
+      if (c.status !== 'pending' || !canRespondCollab(c)) return;
+      const row = m.querySelector(`[data-cb="${c.id}"]`);
+      if (!row) return;
+      row.querySelectorAll('[data-cb-accept],[data-cb-decline]').forEach(b => { b.disabled = false; });
+      canReplyAny = true;
+    });
     const head = m.querySelector('.mhead, .modal-head, .modal-h, h2');
-    if (head && head.parentNode) head.insertAdjacentHTML('afterend', '<div class="ro-bar">只读：这是别人的任务，只有管理员或负责人能改</div>');
+    const tip = canReplyAny
+      ? '只读：这是别人的任务，只有管理员或负责人能改；协作申请由被申请的子系统成员应答'
+      : '只读：这是别人的任务，只有管理员或负责人能改';
+    if (head && head.parentNode) head.insertAdjacentHTML('afterend', `<div class="ro-bar">${tip}</div>`);
     return;
   }
   if (isAdmin()) return;
@@ -8149,6 +8161,8 @@ async function cloudReq(query, opts) {
 function cloudPayload() {
   const clean = JSON.parse(JSON.stringify(state));
   if (clean.settings && clean.settings.ai) clean.settings.ai.key = '';
+  // 账号只属于这台设备：PIN 哈希不上云，避免任何人拿到 key 就能离线爆破
+  clean.users = [];
   return clean;
 }
 
@@ -8220,11 +8234,14 @@ function cloudApplyRemote(row) {
   const incoming = row && row.data;
   if (!incoming || !Array.isArray(incoming.tasks)) { toast('云端数据格式不对，已放弃', true); return; }
   const localKey = (state.settings && state.settings.ai && state.settings.ai.key) || '';
+  const localUsers = Array.isArray(state.users) ? JSON.parse(JSON.stringify(state.users)) : [];
   try {
     localStorage.setItem(CLOUD_SNAPSHOT_KEY, JSON.stringify({ at: new Date().toISOString(), rev: Number(cloudCfg().rev || 0), data: state }));
   } catch (e) {}
   state = migrate(incoming);
   if (localKey && state.settings && state.settings.ai && !state.settings.ai.key) state.settings.ai.key = localKey;
+  // 账号跟着设备走，不跟着云端走：拉取后保留本机账号，否则全队共用一个 PIN
+  state.users = localUsers;
   cloudSaveCfg({ rev: Number(row.rev) || 1, at: row.updated_at || new Date().toISOString(), by: row.updated_by || '' });
   applyLinks(); save(true); renderAll();
   cloudBannerRev = 0;

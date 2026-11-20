@@ -63,9 +63,10 @@ grant select, insert, update on table public.rc_state to anon, authenticated;
 ## 数据在哪
 
 - 默认全部数据存在浏览器的 `localStorage`（键名 `rc2027_progress_v1`）
-- 配了云同步 → 云端 `public.rc_state` 里一份 JSON（AI Key 不会上传）
+- 配了云同步 → 云端 `public.rc_state` 里一份 JSON（AI Key 不会上传；账号与 PIN 哈希也不上传）
 - 换浏览器 / 清缓存会丢，迁移可在「指挥台 → 导入导出」里导出 JSON 再导入
 - 没配云同步时，别人打开网页看到的是**示例数据**，不是你的团队数据
+- 开源仓库里只有示例数据；真实任务/人员/考试时间只在你自己的浏览器和你的 Supabase 项目里
 
 ## 本地开发
 
