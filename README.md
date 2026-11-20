@@ -2,7 +2,7 @@
 
 一个给 ROBOCON 小队用的比赛进度看板：**单文件网页**，双击就能开，不需要服务器、不需要登录后台。默认数据只存在你自己浏览器里，配上 Supabase 后全队共用同一份。
 
-在线版：`https://<你的用户名>.github.io/<仓库名>/`
+在线版：<https://jedolli.github.io/rc2027volleyball_schedule_ctr/>　·　仓库：<https://github.com/jedolLi/rc2027volleyball_schedule_ctr>
 
 ![界面预览](screenshot.png)
 
@@ -58,7 +58,7 @@ grant select, insert, update on table public.rc_state to anon, authenticated;
 3. 已经有数据的人点「立即上传」；加入的人选「用云端覆盖本机」。
 4. 之后改动 800ms 自动上传；每 20 秒检查云端，别人改了会弹「云端有更新」，撞车会弹「同步冲突」让你选保留哪边。
 
-细节见仓库外的《使用说明.md》。**publishable key 是公开的**，可以放在网页里；绝不要用 `service_role` / `sb_secret_` 开头的密钥。
+细节见 [使用说明.md](使用说明.md)。**publishable key 是公开的**，可以放在网页里；绝不要用 `service_role` / `sb_secret_` 开头的密钥。
 
 ## 数据在哪
 
